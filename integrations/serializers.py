@@ -7,7 +7,6 @@ class IntegrationAccountSerializer(serializers.ModelSerializer):
         model = IntegrationAccount
         fields = [
             "id",
-            "company",
             "platform",
             "access_token",
             "refresh_token",
