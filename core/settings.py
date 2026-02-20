@@ -151,3 +151,5 @@ SIMPLE_JWT = {
 }
 
 AUTH_USER_MODEL = "companies.User"
+
+META_WEBHOOK_SECRET = "super_secret_meta_key"
