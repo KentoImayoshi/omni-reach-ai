@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+
+# Env
+.env
+venv/
+.env.*
+
+# Docker
+*.log
+
+# VS Code
+.vscode/
+
+# MacOS
+.DS_Store
+
+# Django
+db.sqlite3
+staticfiles/
+media/
+
+# Migrations (opcional se quiser versionar depois)
+# */migrations/*
+# !*/migrations/__init__.py
