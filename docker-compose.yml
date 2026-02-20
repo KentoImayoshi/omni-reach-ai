@@ -26,3 +26,13 @@ services:
     depends_on:
       - db
       - redis
+
+  worker:
+    build: .
+    container_name: omnireach_worker
+    command: celery -A core worker -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
