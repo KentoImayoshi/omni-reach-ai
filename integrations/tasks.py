@@ -1,12 +1,28 @@
 from celery import shared_task
-import time
+from random import randint
+from decimal import Decimal
+from metrics.models import MetricSnapshot
+from integrations.models import IntegrationAccount
 
 
 @shared_task(bind=True, max_retries=3)
-def simulate_external_sync(self, integration_id):
+def sync_integration_metrics(self, integration_id):
     try:
-        print(f"Processing integration {integration_id}")
-        time.sleep(5)  # simula chamada externa
-        print("Finished processing")
+        integration = IntegrationAccount.objects.get(id=integration_id)
+
+        # Simula dados externos
+        impressions = randint(1000, 5000)
+        clicks = randint(100, 500)
+        spend = Decimal(randint(1000, 5000)) / 10
+
+        MetricSnapshot.objects.create(
+            integration=integration,
+            impressions=impressions,
+            clicks=clicks,
+            spend=spend
+        )
+
+        print(f"Metrics saved for integration {integration_id}")
+
     except Exception as exc:
         raise self.retry(exc=exc, countdown=5)
