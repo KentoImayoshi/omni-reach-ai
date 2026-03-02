@@ -23,4 +23,4 @@ class MetricSnapshot(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.integration.platform} - {self.created_at}"
+        return f"{self.integration.platform} - {self.created_at}"   
