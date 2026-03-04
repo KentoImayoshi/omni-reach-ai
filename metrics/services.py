@@ -2,6 +2,7 @@ from .selectors import (
     get_metrics_summary,
     get_metrics_daily_breakdown,
 )
+from django.core.cache import cache
 
 
 def get_company_metrics_summary(*, company, start_date=None, end_date=None):
@@ -41,3 +42,12 @@ def get_company_daily_breakdown(*, company, start_date=None, end_date=None):
         }
         for item in data
     ]
+
+def invalidate_metrics_cache(company_id):
+    """
+    Clear cached metric summaries when new data arrives.
+    This prevents stale dashboard data.
+    """
+
+    cache.delete_pattern(f"metrics_summary:{company_id}:*")
+    cache.delete_pattern(f"metrics_daily:{company_id}:*")
