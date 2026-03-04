@@ -3,6 +3,9 @@ from .models import Insight
 
 
 class InsightSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Insight objects.
+    """
 
     class Meta:
         model = Insight
