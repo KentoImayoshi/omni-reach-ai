@@ -153,3 +153,13 @@ SIMPLE_JWT = {
 AUTH_USER_MODEL = "companies.User"
 
 META_WEBHOOK_SECRET = "super_secret_meta_key"
+
+# Redis cache for API endpoints
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://redis:6379/1",
+    }
+}
+
+CACHE_TTL = 60 * 5
