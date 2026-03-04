@@ -10,7 +10,9 @@ from metrics.views import (
     MetricSnapshotViewSet,
     MetricsSummaryView,
     MetricsDailyBreakdownView,
+    MetricsMonthlyBreakdownView,
 )
+
 from companies.views import CompanyViewSet
 from integrations.views import IntegrationAccountViewSet
 from integrations.webhooks import meta_webhook
@@ -31,10 +33,11 @@ urlpatterns = [
 
     # Webhooks
     path("api/webhooks/meta/", meta_webhook),
-
+    
     # Metrics aggregated endpoints (must come before router)
     path("api/metrics/summary/", MetricsSummaryView.as_view(), name="metrics-summary"),
     path("api/metrics/daily/", MetricsDailyBreakdownView.as_view(), name="metrics-daily"),
+    path("api/metrics/monthly/", MetricsMonthlyBreakdownView.as_view(), name="metrics-monthly"),
 
     # Router endpoints
     path("api/", include(router.urls)),

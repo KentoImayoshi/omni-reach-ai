@@ -3,6 +3,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
+
 from .models import MetricSnapshot
 from .serializers import (
     MetricSnapshotSerializer,
@@ -11,6 +12,7 @@ from .serializers import (
 from .services import (
     get_company_metrics_summary,
     get_company_daily_breakdown,
+    get_company_monthly_breakdown
 )
 
 from .utils.cache import get_or_set_cache
@@ -119,3 +121,43 @@ class MetricsDailyBreakdownView(APIView):
         breakdown = get_or_set_cache(cache_key, fetch_data)
 
         return Response(breakdown)
+    
+class MetricsMonthlyBreakdownView(APIView):
+    """
+    Returns grouped metrics per month.
+    Useful for dashboard charts.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        serializer = MetricsSummaryFilterSerializer(
+            data=request.query_params
+        )
+        serializer.is_valid(raise_exception=True)
+
+        company = getattr(request.user, "company", None)
+
+        if company is None:
+            return Response(
+                {"detail": "User has no company assigned"},
+                status=400
+            )
+
+        start_date = serializer.validated_data.get("start_date")
+        end_date = serializer.validated_data.get("end_date")
+
+        cache_key = f"metrics_monthly:{company.id}:{start_date}:{end_date}"
+
+        def fetch_data():
+
+            return get_company_monthly_breakdown(
+                company=company,
+                start_date=start_date,
+                end_date=end_date,
+            )
+
+        data = get_or_set_cache(cache_key, fetch_data)
+
+        return Response(data)

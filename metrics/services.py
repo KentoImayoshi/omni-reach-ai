@@ -1,8 +1,10 @@
 from .selectors import (
     get_metrics_summary,
     get_metrics_daily_breakdown,
+    get_company_monthly_metrics,
 )
 from django.core.cache import cache
+
 
 
 def get_company_metrics_summary(*, company, start_date=None, end_date=None):
@@ -51,3 +53,16 @@ def invalidate_metrics_cache(company_id):
 
     cache.delete_pattern(f"metrics_summary:{company_id}:*")
     cache.delete_pattern(f"metrics_daily:{company_id}:*")
+
+def get_company_monthly_breakdown(company, start_date=None, end_date=None):
+    """
+    Service layer wrapper for monthly aggregation.
+    """
+
+    data = get_company_monthly_metrics(
+        company=company,
+        start_date=start_date,
+        end_date=end_date,
+    )
+
+    return data
