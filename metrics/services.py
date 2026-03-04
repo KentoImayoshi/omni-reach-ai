@@ -51,8 +51,9 @@ def invalidate_metrics_cache(company_id):
     This prevents stale dashboard data.
     """
 
-    cache.delete_pattern(f"metrics_summary:{company_id}:*")
-    cache.delete_pattern(f"metrics_daily:{company_id}:*")
+    cache.delete(f"metrics_summary:{company_id}")
+    cache.delete(f"metrics_daily:{company_id}")
+    cache.delete(f"metrics_monthly:{company_id}")
 
 def get_company_monthly_breakdown(company, start_date=None, end_date=None):
     """

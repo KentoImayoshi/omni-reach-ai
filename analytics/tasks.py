@@ -5,7 +5,7 @@ and generating insights asynchronously.
 
 from celery import shared_task
 
-from analytics.models import MetricSnapshot
+from metrics.models import MetricSnapshot
 from analytics.services.insight_engine import generate_and_store_insights
 
 
