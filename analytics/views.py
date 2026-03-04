@@ -1,68 +1,79 @@
-from rest_framework.generics import ListAPIView
+"""
+Analytics views.
+
+Provides endpoints for metrics summary and insights retrieval
+used by the OmniReach dashboard.
+"""
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import generics, status
 
-from .models import Insight
 from .serializers import InsightSerializer
 from .pagination import InsightPagination
+from .models import Insight
+
+# Import selectors
+from .selectors import get_metrics_summary
 
 
-class InsightsListView(ListAPIView):
+class MetricsSummaryView(APIView):
     """
-    Return paginated insights with optional filters.
+    Returns aggregated metrics used in the dashboard summary.
+    """
+
+    def get(self, request):
+        data = get_metrics_summary()
+
+        return Response(data, status=status.HTTP_200_OK)
+
+
+class InsightsListView(generics.ListAPIView):
+    """
+    Returns paginated insights with optional filters.
     """
 
     serializer_class = InsightSerializer
     pagination_class = InsightPagination
 
     def get_queryset(self):
-        """
-        Build queryset with optional filters and optimized queries.
-        """
+        qs = Insight.objects.select_related("integration").all()
 
-        queryset = (
-            Insight.objects
-            .select_related("integration")  # optimize FK query
-            .order_by("-created_at")
-        )
-
-        # Query parameters
         severity = self.request.query_params.get("severity")
         insight_type = self.request.query_params.get("type")
         integration_id = self.request.query_params.get("integration_id")
 
-        # Apply filters if provided
         if severity:
-            queryset = queryset.filter(severity=severity)
+            qs = qs.filter(severity=severity)
 
         if insight_type:
-            queryset = queryset.filter(type=insight_type)
+            qs = qs.filter(type=insight_type)
 
         if integration_id:
-            queryset = queryset.filter(integration_id=integration_id)
+            qs = qs.filter(integration_id=integration_id)
 
-        return queryset
+        return qs
 
 
 class LatestInsightView(APIView):
     """
-    Return the most recent insight.
+    Returns the most recently generated insight.
     """
 
     def get(self, request):
-
-        latest_insight = (
+        insight = (
             Insight.objects
-            .select_related("integration")  # optimize FK query
+            .select_related("integration")
             .order_by("-created_at")
             .first()
         )
 
-        if not latest_insight:
-            return Response({"latest": None})
+        if not insight:
+            return Response(
+                {"detail": "No insights found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-        serializer = InsightSerializer(latest_insight)
+        serializer = InsightSerializer(insight)
 
-        return Response({
-            "latest": serializer.data
-        })
+        return Response(serializer.data, status=status.HTTP_200_OK)

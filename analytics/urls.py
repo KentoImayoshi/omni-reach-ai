@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import InsightsListView, LatestInsightView
 from .api.dashboard import DashboardView
+from .selectors import get_metrics_summary
 
 urlpatterns = [
     path(

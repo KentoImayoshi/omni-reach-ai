@@ -1,5 +1,7 @@
 """
-Selectors layer.
+Selectors package.
 
-Used for reusable database queries.
+Centralizes reusable database queries for analytics.
 """
+
+from .metrics_selector import get_metrics_summary
