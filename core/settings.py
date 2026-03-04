@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'integrations',
     'metrics',
     'alerts',
+    'analytics',
 ]
 
 MIDDLEWARE = [
