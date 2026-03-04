@@ -16,4 +16,4 @@ class Insight(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Insight for {self.metric_snapshot.id}"
+        return self.summary

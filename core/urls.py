@@ -16,7 +16,7 @@ from metrics.views import (
 from companies.views import CompanyViewSet
 from integrations.views import IntegrationAccountViewSet
 from integrations.webhooks import meta_webhook
-
+from .views import dashboard_page
 
 router = DefaultRouter()
 router.register(r"companies", CompanyViewSet, basename="companies")
@@ -44,4 +44,7 @@ urlpatterns = [
 
     # Analytics endpoints
     path("api/", include("analytics.urls")),
+
+    #Dashboard endpoint
+    path("dashboard/", dashboard_page),
 ]
