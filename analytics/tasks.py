@@ -1,3 +1,8 @@
+"""
+Celery tasks responsible for processing metric snapshots
+and generating insights asynchronously.
+"""
+
 from celery import shared_task
 
 from analytics.models import MetricSnapshot
@@ -10,6 +15,9 @@ def process_snapshot(snapshot_id):
     Process a metric snapshot and generate insights.
     """
 
-    snapshot = MetricSnapshot.objects.get(id=snapshot_id)
+    try:
+        snapshot = MetricSnapshot.objects.get(id=snapshot_id)
+    except MetricSnapshot.DoesNotExist:
+        return
 
     generate_and_store_insights(snapshot)
