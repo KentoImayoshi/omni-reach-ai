@@ -8,6 +8,8 @@ from companies.models import Company
 from integrations.models import IntegrationAccount
 from metrics.models import MetricSnapshot
 from analytics.models import Insight as AnalyticsInsight
+from analytics.models_aggregates import MetricsAggregate
+from analytics.services.aggregates import update_daily_aggregate
 
 
 class AnalyticsApiTests(APITestCase):
@@ -154,3 +156,35 @@ class AnalyticsApiTests(APITestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["message"], "A new")
+
+    def test_update_daily_aggregate(self):
+        now = timezone.now()
+
+        snapshot_1 = MetricSnapshot.objects.create(
+            integration=self.integration_a,
+            impressions=100,
+            clicks=10,
+            spend=25.00,
+            created_at=now,
+        )
+        snapshot_2 = MetricSnapshot.objects.create(
+            integration=self.integration_a,
+            impressions=50,
+            clicks=5,
+            spend=10.00,
+            created_at=now,
+        )
+
+        update_daily_aggregate(snapshot_1)
+        update_daily_aggregate(snapshot_2)
+
+        agg = MetricsAggregate.objects.get(
+            integration=self.integration_a,
+            date=timezone.localdate(now),
+        )
+
+        self.assertEqual(agg.total_impressions, 150)
+        self.assertEqual(agg.total_clicks, 15)
+        self.assertAlmostEqual(agg.total_spend, 35.00, places=2)
+        self.assertAlmostEqual(agg.avg_ctr, 10.0, places=2)
+        self.assertAlmostEqual(agg.avg_cpc, 35.00 / 15, places=3)

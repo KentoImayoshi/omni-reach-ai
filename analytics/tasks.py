@@ -8,6 +8,7 @@ from celery import shared_task
 from metrics.models import MetricSnapshot
 from analytics.services.insight_engine import generate_and_store_insights
 from analytics.services.anomaly_engine import generate_and_store_anomalies
+from analytics.services.aggregates import update_daily_aggregate
 
 
 @shared_task
@@ -21,5 +22,6 @@ def process_snapshot(snapshot_id):
     except MetricSnapshot.DoesNotExist:
         return
 
+    update_daily_aggregate(snapshot)
     generate_and_store_insights(snapshot)
     generate_and_store_anomalies(snapshot)
