@@ -18,6 +18,14 @@ class Insight(models.Model):
         related_name="analytics_insights"
     )
 
+    metric_snapshot = models.ForeignKey(
+        "metrics.MetricSnapshot",
+        on_delete=models.CASCADE,
+        related_name="analytics_insights",
+        null=True,
+        blank=True,
+    )
+
     type = models.CharField(max_length=100)
 
     severity = models.CharField(

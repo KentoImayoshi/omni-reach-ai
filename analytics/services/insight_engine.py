@@ -4,7 +4,7 @@ and generating actionable marketing insights.
 """
 
 from metrics.models import MetricSnapshot
-from alerts.models import Insight
+from analytics.models import Insight
 
 
 class InsightEngine:
@@ -76,6 +76,7 @@ class InsightEngine:
 
         return []
 
+
 def generate_and_store_insights(snapshot: MetricSnapshot):
     """
     Run the InsightEngine and persist generated insights to the database.
@@ -86,15 +87,20 @@ def generate_and_store_insights(snapshot: MetricSnapshot):
     insights = engine.run()
 
     for insight in insights:
-
         # Avoid duplicate insights for the same snapshot
         already_exists = Insight.objects.filter(
+            integration=snapshot.integration,
             metric_snapshot=snapshot,
-            summary=insight["message"]
+            type=insight["type"],
+            message=insight["message"],
         ).exists()
 
         if not already_exists:
             Insight.objects.create(
+                integration=snapshot.integration,
                 metric_snapshot=snapshot,
-                summary=insight["message"],
+                type=insight["type"],
+                severity=insight["severity"],
+                message=insight["message"],
+                recommendation=insight["recommendation"],
             )

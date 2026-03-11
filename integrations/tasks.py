@@ -3,7 +3,7 @@ from random import randint
 from decimal import Decimal
 from metrics.models import MetricSnapshot
 from integrations.models import IntegrationAccount
-from alerts.models import Insight
+from analytics.models import Insight
 from alerts.llm_service import generate_insight
 
 
@@ -27,8 +27,12 @@ def sync_integration_metrics(self, integration_id):
         summary = generate_insight(impressions, clicks, spend)
 
         Insight.objects.create(
+            integration=integration,
             metric_snapshot=metric,
-            summary=summary
+            type="llm_summary",
+            severity="info",
+            message=summary,
+            recommendation="Monitor performance",
         )
 
         print(f"Metrics + Insight saved for integration {integration_id}")

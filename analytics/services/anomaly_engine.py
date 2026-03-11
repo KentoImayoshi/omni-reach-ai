@@ -141,6 +141,7 @@ def generate_and_store_anomalies(snapshot, *, window_days=14):
 
         Insight.objects.create(
             integration=integration,
+            metric_snapshot=snapshot,
             type=insight_type,
             severity=severity,
             message=message,
