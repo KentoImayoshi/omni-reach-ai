@@ -41,3 +41,7 @@ class Insight(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["integration", "created_at"]),
+            models.Index(fields=["severity", "type"]),
+        ]
