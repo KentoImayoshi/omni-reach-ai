@@ -39,6 +39,18 @@ def _safe_zscore(series, value):
     return (value - mean(series)) / sigma
 
 
+def _confidence(z):
+    """
+    Map z-score magnitude to a 0-1 confidence band.
+    """
+
+    if z is None:
+        return None
+
+    return min(abs(z) / Z_CRITICAL, 1.0)
+
+
+
 def _daily_aggregates(integration, *, start_date):
     """
     Aggregate snapshots per day for an integration from start_date onward.
@@ -146,4 +158,7 @@ def generate_and_store_anomalies(snapshot, *, window_days=14):
             severity=severity,
             message=message,
             recommendation=recommendations.get(metric, "Review performance changes"),
+            confidence_score=_confidence(z),
         )
+
+

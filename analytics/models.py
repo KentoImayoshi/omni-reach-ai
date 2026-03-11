@@ -33,6 +33,11 @@ class Insight(models.Model):
         choices=SEVERITY_CHOICES
     )
 
+    confidence_score = models.FloatField(
+        null=True,
+        blank=True,
+    )
+
     message = models.TextField()
 
     recommendation = models.TextField()
@@ -45,3 +50,4 @@ class Insight(models.Model):
             models.Index(fields=["integration", "created_at"]),
             models.Index(fields=["severity", "type"]),
         ]
+

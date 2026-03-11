@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework.test import APITestCase
@@ -10,6 +11,7 @@ from metrics.models import MetricSnapshot
 from analytics.models import Insight as AnalyticsInsight
 from analytics.models_aggregates import MetricsAggregate
 from analytics.services.aggregates import update_daily_aggregate
+from analytics.services.anomaly_engine import generate_and_store_anomalies
 
 
 class AnalyticsApiTests(APITestCase):
@@ -195,3 +197,53 @@ class AnalyticsApiTests(APITestCase):
         self.assertAlmostEqual(agg.total_spend, 35.00, places=2)
         self.assertAlmostEqual(agg.avg_ctr, 10.0, places=2)
         self.assertAlmostEqual(agg.avg_cpc, 35.00 / 15, places=3)
+
+
+class AnomalyEngineTests(TestCase):
+    def setUp(self):
+        self.company = Company.objects.create(name="Gamma")
+        self.integration = IntegrationAccount.objects.create(
+            company=self.company,
+            platform="meta",
+            access_token="token-a",
+        )
+
+    def test_anomaly_insight_has_confidence_score(self):
+        base_day = timezone.now() - timedelta(days=6)
+        baseline_impressions = [95, 100, 105, 110, 98]
+
+        for offset, impressions in enumerate(baseline_impressions):
+            snapshot = MetricSnapshot.objects.create(
+                integration=self.integration,
+                impressions=impressions,
+                clicks=10,
+                spend=20.0,
+            )
+            MetricSnapshot.objects.filter(id=snapshot.id).update(
+                created_at=base_day + timedelta(days=offset),
+            )
+
+        target_snapshot = MetricSnapshot.objects.create(
+            integration=self.integration,
+            impressions=200,
+            clicks=10,
+            spend=20.0,
+        )
+        MetricSnapshot.objects.filter(id=target_snapshot.id).update(
+            created_at=timezone.now(),
+        )
+
+        generate_and_store_anomalies(target_snapshot)
+
+        insight = AnalyticsInsight.objects.filter(
+            integration=self.integration,
+            type="anomaly_impressions",
+        ).first()
+
+        self.assertIsNotNone(insight)
+        self.assertIsNotNone(insight.confidence_score)
+        self.assertGreaterEqual(insight.confidence_score, 0.0)
+        self.assertLessEqual(insight.confidence_score, 1.0)
+
+
+
