@@ -160,15 +160,21 @@ class AnalyticsApiTests(APITestCase):
     def test_update_daily_aggregate(self):
         now = timezone.now()
 
+        integration_c = IntegrationAccount.objects.create(
+            company=self.company_a,
+            platform="apple",
+            access_token="token-c",
+        )
+
         snapshot_1 = MetricSnapshot.objects.create(
-            integration=self.integration_a,
+            integration=integration_c,
             impressions=100,
             clicks=10,
             spend=25.00,
             created_at=now,
         )
         snapshot_2 = MetricSnapshot.objects.create(
-            integration=self.integration_a,
+            integration=integration_c,
             impressions=50,
             clicks=5,
             spend=10.00,
@@ -179,7 +185,7 @@ class AnalyticsApiTests(APITestCase):
         update_daily_aggregate(snapshot_2)
 
         agg = MetricsAggregate.objects.get(
-            integration=self.integration_a,
+            integration=integration_c,
             date=timezone.localdate(now),
         )
 

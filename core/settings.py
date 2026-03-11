@@ -9,6 +9,8 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
+import base64
+import hashlib
 import os
 from pathlib import Path
 from datetime import timedelta
@@ -157,6 +159,10 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
+    "DEFAULT_THROTTLE_RATES": {
+        "auth": os.getenv("THROTTLE_AUTH", "10/min"),
+        "webhooks": os.getenv("THROTTLE_WEBHOOKS", "60/min"),
+    },
 }
 
 SIMPLE_JWT = {
@@ -171,6 +177,15 @@ SIMPLE_JWT = {
 AUTH_USER_MODEL = "companies.User"
 
 META_WEBHOOK_SECRET = os.getenv("META_WEBHOOK_SECRET", "change-me")
+
+def _derive_fernet_key(secret):
+    digest = hashlib.sha256(secret.encode()).digest()
+    return base64.urlsafe_b64encode(digest).decode()
+
+
+INTEGRATION_TOKENS_KEY = os.getenv("INTEGRATION_TOKENS_KEY")
+if not INTEGRATION_TOKENS_KEY:
+    INTEGRATION_TOKENS_KEY = _derive_fernet_key(SECRET_KEY)
 
 # Redis cache for API endpoints
 CACHES = {

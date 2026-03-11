@@ -3,6 +3,14 @@ from .models import IntegrationAccount
 
 
 class IntegrationAccountSerializer(serializers.ModelSerializer):
+    access_token = serializers.CharField(write_only=True)
+    refresh_token = serializers.CharField(
+        write_only=True,
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+    )
+
     class Meta:
         model = IntegrationAccount
         fields = [

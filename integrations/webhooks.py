@@ -3,10 +3,11 @@ import hashlib
 
 from django.conf import settings
 
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.throttling import ScopedRateThrottle
 
 from integrations.models import IntegrationAccount
 from metrics.models import MetricSnapshot
@@ -14,6 +15,7 @@ from metrics.models import MetricSnapshot
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([ScopedRateThrottle])
 def meta_webhook(request):
     """
     Simulated Meta webhook endpoint with HMAC SHA256 validation.
@@ -73,3 +75,6 @@ def meta_webhook(request):
         {"status": "Metric received successfully"},
         status=status.HTTP_201_CREATED,
     )
+
+
+meta_webhook.throttle_scope = "webhooks"
