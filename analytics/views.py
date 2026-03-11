@@ -1,14 +1,8 @@
-"""
-Analytics views.
-
-Provides endpoints for metrics summary and insights retrieval
-used by the OmniReach dashboard.
-"""
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
+from django.core.cache import cache
 
 from .serializers import InsightSerializer
 from .pagination import InsightPagination
@@ -73,6 +67,36 @@ class InsightsListView(generics.ListAPIView):
 
         return qs
 
+    def list(self, request, *args, **kwargs):
+        company = getattr(request.user, "company", None)
+
+        if company is None:
+            return Response(
+                {"detail": "User has no company assigned"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        severity = request.query_params.get("severity", "")
+        insight_type = request.query_params.get("type", "")
+        integration_id = request.query_params.get("integration_id", "")
+        page = request.query_params.get("page", "1")
+        page_size = request.query_params.get("page_size", "")
+
+        cache_key = (
+            f"insights_list:{company.id}:{severity}:{insight_type}:"
+            f"{integration_id}:{page}:{page_size}"
+        )
+
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return Response(cached)
+
+        response = super().list(request, *args, **kwargs)
+
+        cache.set(cache_key, response.data, 60)
+
+        return response
+
 
 class LatestInsightView(APIView):
     """
@@ -90,6 +114,11 @@ class LatestInsightView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        cache_key = f"insights_latest:{company.id}"
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return Response(cached)
+
         insight = (
             Insight.objects
             .select_related("integration")
@@ -105,5 +134,7 @@ class LatestInsightView(APIView):
             )
 
         serializer = InsightSerializer(insight)
+
+        cache.set(cache_key, serializer.data, 60)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
