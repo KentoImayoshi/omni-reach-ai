@@ -4,9 +4,9 @@ services:
     image: postgres:15
     container_name: omnireach_db
     environment:
-      POSTGRES_DB: omnireach
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-omnireach}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
       - "5432:5432"
     volumes:
@@ -24,6 +24,8 @@ services:
     build: .
     container_name: omnireach_web
     command: python manage.py runserver 0.0.0.0:8000
+    env_file:
+      - .env
     volumes:
       - .:/app
     ports:
@@ -37,6 +39,8 @@ services:
     build: .
     container_name: omnireach_worker
     command: celery -A core worker -l info
+    env_file:
+      - .env
     volumes:
       - .:/app
     depends_on:

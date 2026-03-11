@@ -8,6 +8,7 @@ used by the OmniReach dashboard.
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
 
 from .serializers import InsightSerializer
 from .pagination import InsightPagination
@@ -22,8 +23,18 @@ class MetricsSummaryView(APIView):
     Returns aggregated metrics used in the dashboard summary.
     """
 
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
-        data = get_metrics_summary()
+        company = getattr(request.user, "company", None)
+
+        if company is None:
+            return Response(
+                {"detail": "User has no company assigned"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        data = get_metrics_summary(company=company)
 
         return Response(data, status=status.HTTP_200_OK)
 
@@ -35,9 +46,17 @@ class InsightsListView(generics.ListAPIView):
 
     serializer_class = InsightSerializer
     pagination_class = InsightPagination
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        qs = Insight.objects.select_related("integration").all()
+        company = getattr(self.request.user, "company", None)
+
+        if company is None:
+            return Insight.objects.none()
+
+        qs = Insight.objects.select_related("integration").filter(
+            integration__company=company
+        )
 
         severity = self.request.query_params.get("severity")
         insight_type = self.request.query_params.get("type")
@@ -60,10 +79,21 @@ class LatestInsightView(APIView):
     Returns the most recently generated insight.
     """
 
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
+        company = getattr(request.user, "company", None)
+
+        if company is None:
+            return Response(
+                {"detail": "User has no company assigned"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         insight = (
             Insight.objects
             .select_related("integration")
+            .filter(integration__company=company)
             .order_by("-created_at")
             .first()
         )

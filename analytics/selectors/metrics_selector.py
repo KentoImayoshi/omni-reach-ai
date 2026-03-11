@@ -2,15 +2,17 @@ from django.db.models import Sum
 from ..models_aggregates import MetricsAggregate
 
 
-def get_metrics_summary():
+def get_metrics_summary(*, company):
     """
     Returns aggregated metrics for the dashboard.
     """
 
-    metrics = MetricsAggregate.objects.aggregate(
-        total_impressions=Sum("impressions"),
-        total_clicks=Sum("clicks"),
-        total_spend=Sum("spend"),
+    metrics = MetricsAggregate.objects.filter(
+        integration__company=company
+    ).aggregate(
+        total_impressions=Sum("total_impressions"),
+        total_clicks=Sum("total_clicks"),
+        total_spend=Sum("total_spend"),
     )
 
     return {
