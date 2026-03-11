@@ -1,5 +1,7 @@
 # OmniReach AI
 
+![CI](https://github.com/KentoImayoshi/omni-reach-ai/actions/workflows/ci.yml/badge.svg?branch=main)
+
 [CI] [Django] [DRF] [Celery] [Redis] [Postgres] [Docker]
 
 OmniReach is a multi-tenant marketing analytics backend built with Django, Django REST Framework, Celery, Redis, and Postgres. It ingests integration metrics, aggregates them for fast dashboards, and generates rule-based plus anomaly insights.
