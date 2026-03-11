@@ -7,8 +7,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
-from metrics.models import MetricSnapshot
 from analytics.models import Insight
+from analytics.models_aggregates import MetricsAggregate
 
 
 class DashboardView(APIView):
@@ -35,31 +35,31 @@ class DashboardView(APIView):
         if cached_data:
             return Response(cached_data)
 
-        qs = MetricSnapshot.objects.filter(
+        agg_qs = MetricsAggregate.objects.filter(
             integration__company=company
         )
 
         # Summary metrics
-        summary = qs.aggregate(
-            impressions=Sum("impressions"),
-            clicks=Sum("clicks"),
-            spend=Sum("spend")
+        summary = agg_qs.aggregate(
+            impressions=Sum("total_impressions"),
+            clicks=Sum("total_clicks"),
+            spend=Sum("total_spend")
         )
 
         # Monthly trend
         trend = (
-            qs
-            .annotate(month=TruncMonth("created_at"))
+            agg_qs
+            .annotate(month=TruncMonth("date"))
             .values("month")
-            .annotate(clicks=Sum("clicks"))
+            .annotate(clicks=Sum("total_clicks"))
             .order_by("month")
         )
 
         # Top integrations by clicks
         top_integrations = (
-            qs
+            agg_qs
             .values("integration__platform")
-            .annotate(clicks=Sum("clicks"))
+            .annotate(clicks=Sum("total_clicks"))
             .order_by("-clicks")[:5]
         )
 

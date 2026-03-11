@@ -42,22 +42,23 @@ class AnalyticsApiTests(APITestCase):
 
         now = timezone.now()
 
-        MetricSnapshot.objects.bulk_create([
-            MetricSnapshot(
-                integration=self.integration_a,
-                impressions=100,
-                clicks=10,
-                spend=20.50,
-                created_at=now,
-            ),
-            MetricSnapshot(
-                integration=self.integration_b,
-                impressions=999,
-                clicks=99,
-                spend=199.00,
-                created_at=now,
-            ),
-        ])
+        snapshot_a = MetricSnapshot.objects.create(
+            integration=self.integration_a,
+            impressions=100,
+            clicks=10,
+            spend=20.50,
+            created_at=now,
+        )
+        snapshot_b = MetricSnapshot.objects.create(
+            integration=self.integration_b,
+            impressions=999,
+            clicks=99,
+            spend=199.00,
+            created_at=now,
+        )
+
+        update_daily_aggregate(snapshot_a)
+        update_daily_aggregate(snapshot_b)
 
     def test_dashboard_scoped_to_company(self):
         AnalyticsInsight.objects.create(
