@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 
 
 from .models import MetricSnapshot
+from .pagination import MetricSnapshotPagination
 from .serializers import (
     MetricSnapshotSerializer,
     MetricsSummaryFilterSerializer,
@@ -25,6 +26,7 @@ class MetricSnapshotViewSet(ModelViewSet):
     """
     permission_classes = [IsAuthenticated]
     serializer_class = MetricSnapshotSerializer
+    pagination_class = MetricSnapshotPagination
 
     def get_queryset(self):
 
@@ -121,7 +123,8 @@ class MetricsDailyBreakdownView(APIView):
         breakdown = get_or_set_cache(cache_key, fetch_data)
 
         return Response(breakdown)
-    
+
+
 class MetricsMonthlyBreakdownView(APIView):
     """
     Returns grouped metrics per month.
